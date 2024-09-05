@@ -1,6 +1,7 @@
 import { Hero } from "../components/Hero"
 import { Appbar } from "../components/Appbar"
 import { Features } from "@/components/Features"
+import { Pricing } from "@/components/Pricing"
 
 
 
@@ -12,6 +13,7 @@ export const Home = () =>{
         <main className="flex-1">
             <Hero/>
             <Features/>
+            <Pricing/>
         </main>
     </div>
        
