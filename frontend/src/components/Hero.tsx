@@ -2,7 +2,7 @@ import { Button } from "./ui/button";
 
 export const Hero = () => {
   return (
-    <div className="w-full h-screen flex items-center justify-center py-12 md:py-24 lg:py-32 xl:py-48">
+    <div className="w-full h-50 flex items-center justify-center py-12 md:py-24 lg:py-32 xl:py-48">
       <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center space-y-4 text-center">
           <div className="space-y-2">
