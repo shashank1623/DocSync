@@ -19,30 +19,16 @@ export const Appbar = () => {
         } lg:block absolute lg:static top-14 left-0 right-0 bg-white lg:bg-transparent transition-all duration-300 ease-in-out`}
       >
         <ul className="flex flex-col lg:flex-row gap-4 p-4 lg:p-0">
-          <li>
-            <Link
-              className="text-sm font-medium hover:underline underline-offset-4"
-              to="#features"
-            >
-              Features
-            </Link>
-          </li>
-          <li>
-            <Link
-              className="text-sm font-medium hover:underline underline-offset-4"
-              to="#pricing"
-            >
-              Pricing
-            </Link>
-          </li>
-          <li>
-            <Link
-              className="text-sm font-medium hover:underline underline-offset-4"
-              to="#security"
-            >
-              Security
-            </Link>
-          </li>
+          {["Features", "Pricing", "Security", "Templates"].map((item) => (
+            <li key={item}>
+              <Link
+                className="text-sm font-medium hover:underline underline-offset-4"
+                to={`#${item.toLowerCase()}`}
+              >
+                {item}
+              </Link>
+            </li>
+          ))}
         </ul>
       </nav>
     </div>
