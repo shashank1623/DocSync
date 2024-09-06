@@ -1,6 +1,7 @@
 import { FileText, Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { HashLink } from "react-router-hash-link";
 
 export const Appbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -21,13 +22,14 @@ export const Appbar = () => {
         <ul className="flex flex-col lg:flex-row gap-4 p-4 lg:p-0">
           {["Features", "Pricing", "Security", "Templates"].map((item) => (
             <li key={item}>
-              <Link
-                className="text-sm font-medium hover:underline underline-offset-4"
-                to={`#${item.toLowerCase()}`}
-              >
-                {item}
-              </Link>
-            </li>
+            <HashLink
+              className="text-sm font-medium hover:underline underline-offset-4"
+              smooth
+              to={`#${item.toLowerCase()}`}
+            >
+              {item}
+            </HashLink>
+          </li>
           ))}
         </ul>
       </nav>
