@@ -1,7 +1,7 @@
 
 import { Users , Share2 , Lock } from "lucide-react"
 export const Features = () =>{
-    return <div id="features" className=" flex items-center justify-center w-full py-12 md:py-24 lg:py-32 bg-gray-100 dark:bg-gray-800">
+    return <div id="features" className=" flex items-center justify-center w-full py-12 md:py-24 lg:py-32 bg-gray-300 dark:bg-gray-800">
     <div className="container  px-4 md:px-6">
       <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-center mb-12">Features</h2>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-12">
