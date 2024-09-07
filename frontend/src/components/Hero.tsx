@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 
 export const Hero = () => {
@@ -14,7 +15,9 @@ export const Hero = () => {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-            <Button className="w-full sm:w-auto">Get Started</Button>
+            <Link to={`/signin`}>
+              <Button className="w-full sm:w-auto">Get Started</Button>
+            </Link>
             <Button variant="outline" className="w-full sm:w-auto">
               Learn More
             </Button>
