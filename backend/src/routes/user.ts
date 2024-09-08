@@ -1,6 +1,7 @@
 
 import { Router } from "express";
 import prisma from "./client";
+import bcrypt from "bcryptjs";
 const userRouter = Router();
 
 
@@ -13,20 +14,36 @@ userRouter.post('/signup',async (req,res)=>{
 
     try{
 
+        //check if user already exists
+        const existingUser = await prisma.user.findUnique({
+            where : {email}
+        });
+
+        if (existingUser) {
+            return res.status(400).json({ error: "User already exists with this email." });
+        }
+
+         // Hash the password
+         const salt = await bcrypt.genSalt(10);
+         const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Hash the Password
+
         //create the user in the database
         const newUser = await prisma.user.create({
             data : {
                 name : `${firstName} ${lastName}`,
                 email,
-                password
+                password : hashedPassword
             }
 
         })
 
         // return the sucess response
         res.status(201).json({
-            id : newUser.id,
-            name : newUser.name
+            id: newUser.id,
+            email: newUser.email,
+            name: newUser.name
         })
     }catch (error) {
         console.error("Error during user signup:", error);
