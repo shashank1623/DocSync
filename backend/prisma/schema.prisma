@@ -12,3 +12,12 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        String      @id @default(uuid())
+  name      String   // You can concatenate firstName and lastName into one name field.
+  email     String   @unique
+  password  String   // This will store the hashed password.
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
