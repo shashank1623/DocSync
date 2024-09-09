@@ -3,13 +3,122 @@ import { FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import axios from "axios"; // Import axios for HTTP requests
+import { signupInput , signinInput } from "@alias1623/docsync"
+import { useState } from "react"
+import { BACKEND_URL } from "@/config"
+
 interface AuthProps {
     type: "signin" | "signup";
 }
 export default function Auth({ type }: AuthProps) {
 
     const isSignIn = type === "signin";
+
+    const navigate = useNavigate();
+    // State to handle forms inputs
+    const [firstName , setFirstName] = useState<string>("");
+    const [lastName , setLastName] = useState<string>("");
+    const [email , setEmail] = useState<string>("");
+    const [password,setPassword] = useState<string>("");
+
+
+    // state to handle error and landing
+    const [loading,setLoading] = useState<boolean>(false);
+    const [error,setError] = useState<string | null> (null);
+
+
+    //singup function with Docsync input validation
+    const handleSignup = async () =>{
+        setLoading(true);
+        setError(null);
+
+        // Check if all required fields are filled
+        if (!firstName || !lastName || !email || !password) {
+            setError("Please fill out all fields.");
+            setLoading(false);
+            return;
+        }
+
+
+        //validate the data using signup input schema from Docsync
+        const validation = signupInput.safeParse({
+            firstName,
+            lastName,
+            email,
+            password
+        })
+
+        if(!validation.success){
+            setError("Invalid input data. Please correct the fields.");
+            console.log(validation.error.format());
+            setLoading(false);
+            return;
+        }
+
+        try {
+            console.log(validation.data)
+            const response = await axios.post(`${BACKEND_URL}/api/v1/user/signup`, validation.data); // Use validated data
+            console.log(response.data);
+            alert("Account created successfully!");
+            navigate('/dashboard')
+        } catch (err: any) {
+            setError(err.response?.data?.error || "Something went wrong.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+
+    //signin function with zod validation
+    const handleSignin = async () =>{
+        setLoading(true);
+        setError(null);
+
+        // Check if email and password fields are filled
+        if (!email || !password) {
+            setError("Please fill out all fields.");
+            setLoading(false);
+            return;
+        }
+
+        //validate the data using signinInput schema
+        const validation = signinInput.safeParse({
+            email,
+            password
+        })
+
+        if (!validation.success) {
+            setError("Invalid input data. Please correct the fields.");
+            console.log(validation.error.format());
+            setLoading(false);
+            return;
+        }
+        console.log(validation.data);
+
+        try {
+            const response = await axios.post(`${BACKEND_URL}/api/v1/user/signin`, validation.data); // Use validated data
+            console.log(response.data);
+            alert("Login successful!");
+            navigate('/dashboard');
+        } catch (err: any) {
+            setError(err.response?.data?.error || "Invalid email or password.");
+        } finally {
+            setLoading(false);
+        }
+
+    }
+
+
+    // handle form submission
+    const handleSubmit = () =>{
+        if(isSignIn){
+            handleSignin();
+        }else{
+            handleSignup();
+        }
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
@@ -33,27 +142,48 @@ export default function Auth({ type }: AuthProps) {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="first-name">First name</Label>
-                                    <Input id="first-name" placeholder="John" required />
+                                    <Input id="first-name" placeholder="John" value={firstName} onChange={(e)=> setFirstName(e.target.value)} required />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="last-name">Last name</Label>
-                                    <Input id="last-name" placeholder="Doe" required />
+                                    <Input
+                                        id="last-name"
+                                        placeholder="Doe"
+                                        required
+                                        value={lastName}
+                                        onChange={(e) => setLastName(e.target.value)}
+                                    />
                                 </div>
                             </div>
                         )}
 
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" placeholder="m@example.com" required />
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="m@example.com"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
                         </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="password">Password</Label>
-                            <Input id="password" type="password" required />
+                            <Input
+                                id="password"
+                                type="password"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
                         </div>
 
-                        <Button className="w-full">
-                            {isSignIn ? "Sign In" : "Create Account"}
+                        {error && <p className="text-red-500">{error}</p>}
+
+                        <Button className="w-full" disabled={loading} onClick={handleSubmit} >
+                            {loading ? "Processing..." : isSignIn ? "Sign In" : "Create Account"}
                         </Button>
 
                         <div className="relative">
