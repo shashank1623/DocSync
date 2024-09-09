@@ -2,6 +2,7 @@
 import { Router } from "express";
 import prisma from "./client";
 import bcrypt from "bcryptjs";
+import { signinInput , signupInput } from "@alias1623/docsync";
 const userRouter = Router();
 
 
@@ -11,6 +12,13 @@ userRouter.get('/info', (req,res)=>{
 //signup logic (user Registration)
 userRouter.post('/signup',async (req,res)=>{
     const {firstName , lastName , email , password } = req.body;
+    const {success} = signupInput.safeParse({firstName,lastName,email,password});
+
+    if(!success){
+        return res.status(411).json({
+          message : "Inputs are not Correct"
+        })
+      }
 
     try{
 
@@ -49,5 +57,49 @@ userRouter.post('/signup',async (req,res)=>{
         console.error("Error during user signup:", error);
         res.status(500).json({ error: "Something went wrong during registration." });
     }
+})
+
+userRouter.post('/signin' , async (req,res)=>{
+
+    const {email,password} = req.body;
+    const {success} = signupInput.safeParse({email,password});
+
+    if(!success){
+        return res.status(411).json({
+          message : "Inputs are not Correct"
+        })
+      }
+
+    try{
+        //check if the user exists or not
+        const user = await prisma.user.findUnique({
+            where : {email}
+        })
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Compare the provided password with the hashed password in the database
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(400).json({ error: "Invalid credentials" });
+        }
+
+        //if the user is authentication return a sucess response
+        res.status(200).json({
+            message : "Login sucessful",
+            user : {
+                id :  user.id,
+                email : user.email,
+                name : user.name
+            }
+        })
+    }catch (error) {
+        console.error("Error during user signin:", error);
+        res.status(500).json({ error: "Something went wrong during login." });
+    }
+    
 })
 export default userRouter;
