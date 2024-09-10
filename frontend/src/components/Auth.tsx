@@ -3,11 +3,8 @@ import { FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Link, useNavigate } from "react-router-dom"
-import axios from "axios"; // Import axios for HTTP requests
-import { signupInput , signinInput } from "@alias1623/docsync"
-import { useState } from "react"
-import { BACKEND_URL } from "@/config"
+import { Link } from "react-router-dom"
+import { useAuth } from "@/hooks/useAuth"
 
 interface AuthProps {
     type: "signin" | "signup";
@@ -16,109 +13,19 @@ export default function Auth({ type }: AuthProps) {
 
     const isSignIn = type === "signin";
 
-    const navigate = useNavigate();
-    // State to handle forms inputs
-    const [firstName , setFirstName] = useState<string>("");
-    const [lastName , setLastName] = useState<string>("");
-    const [email , setEmail] = useState<string>("");
-    const [password,setPassword] = useState<string>("");
-
-
-    // state to handle error and landing
-    const [loading,setLoading] = useState<boolean>(false);
-    const [error,setError] = useState<string | null> (null);
-
-
-    //singup function with Docsync input validation
-    const handleSignup = async () =>{
-        setLoading(true);
-        setError(null);
-
-        // Check if all required fields are filled
-        if (!firstName || !lastName || !email || !password) {
-            setError("Please fill out all fields.");
-            setLoading(false);
-            return;
-        }
-
-
-        //validate the data using signup input schema from Docsync
-        const validation = signupInput.safeParse({
-            firstName,
-            lastName,
-            email,
-            password
-        })
-
-        if(!validation.success){
-            setError("Invalid input data. Please correct the fields.");
-            console.log(validation.error.format());
-            setLoading(false);
-            return;
-        }
-
-        try {
-            console.log(validation.data)
-            const response = await axios.post(`${BACKEND_URL}/api/v1/user/signup`, validation.data); // Use validated data
-            console.log(response.data);
-            alert("Account created successfully!");
-            navigate('/dashboard')
-        } catch (err: any) {
-            setError(err.response?.data?.error || "Something went wrong.");
-        } finally {
-            setLoading(false);
-        }
-    }
-
-
-    //signin function with zod validation
-    const handleSignin = async () =>{
-        setLoading(true);
-        setError(null);
-
-        // Check if email and password fields are filled
-        if (!email || !password) {
-            setError("Please fill out all fields.");
-            setLoading(false);
-            return;
-        }
-
-        //validate the data using signinInput schema
-        const validation = signinInput.safeParse({
-            email,
-            password
-        })
-
-        if (!validation.success) {
-            setError("Invalid input data. Please correct the fields.");
-            console.log(validation.error.format());
-            setLoading(false);
-            return;
-        }
-        console.log(validation.data);
-
-        try {
-            const response = await axios.post(`${BACKEND_URL}/api/v1/user/signin`, validation.data); // Use validated data
-            console.log(response.data);
-            alert("Login successful!");
-            navigate('/dashboard');
-        } catch (err: any) {
-            setError(err.response?.data?.error || "Invalid email or password.");
-        } finally {
-            setLoading(false);
-        }
-
-    }
-
-
-    // handle form submission
-    const handleSubmit = () =>{
-        if(isSignIn){
-            handleSignin();
-        }else{
-            handleSignup();
-        }
-    }
+    const {
+        firstName,
+        lastName,
+        email,
+        password,
+        setFirstName,
+        setLastName,
+        setEmail,
+        setPassword,
+        loading,
+        error,
+        handleSubmit,
+      } = useAuth(isSignIn);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
