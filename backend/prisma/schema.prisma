@@ -17,7 +17,9 @@ model User {
   id        String      @id @default(uuid())
   name      String   // You can concatenate firstName and lastName into one name field.
   email     String   @unique
-  password  String   // This will store the hashed password.
+  password  String?   // This will store the hashed password.
+  image     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  socialId  String?
 }
