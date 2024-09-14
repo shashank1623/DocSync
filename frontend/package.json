@@ -20,12 +20,16 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.438.0",
+    "quill": "^2.0.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.1",
     "react-router-hash-link": "^2.4.3",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
+    "y-quill": "^1.0.0",
+    "y-websocket": "^2.0.4",
+    "yjs": "^13.6.19",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
