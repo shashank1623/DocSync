@@ -6,6 +6,7 @@ import { Signin } from './pages/Signin'
 import { Signup } from './pages/Signup'
 import { Dashboard } from './pages/Dashboard'
 import ProtectedRoute from './components/ProtectedRoute'
+import DocSyncEditor from './components/DocSyncEditor'
 function App() {
 
 
@@ -18,7 +19,7 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path='/dashboard' element={<Dashboard />} />
-          <Route path='/dashboard/document/d/:id/edit' />
+          <Route path='/dashboard/document/d/:id/edit' element={<DocSyncEditor/>}/>
         </Route>
       </Routes>
     </BrowserRouter>
