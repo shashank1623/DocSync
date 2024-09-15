@@ -21,5 +21,39 @@ model User {
   image     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  socialId  String?
+  socialId  String? // For social login (Google, Facebook)
+  documents   Document[] // One-to-many relationship with Document
+  collaborators Collaborator[] // Many-to-many via Collaborator model
+
+  @@map("users")
+}
+
+model Document{
+  id          String       @id @default(uuid())
+  title       String       @default("Untitled Document")
+  content     String       @default("")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  ownerId     String
+  owner       User         @relation(fields: [ownerId], references: [id])
+  collaborators Collaborator[] // Many-to-many via Collaborator model
+
+  @@map("documents")
+}
+
+model Collaborator {
+  id          Int          @id @default(autoincrement())
+  userId      String
+  documentId  String
+  role        CollaboratorRole @default(EDITOR)
+  user        User        @relation(fields: [userId], references: [id])
+  document    Document    @relation(fields: [documentId], references: [id])
+
+  @@unique([userId, documentId]) // Ensure a user cannot have multiple roles on the same document
+  @@map("collaborators")
+}
+
+enum CollaboratorRole {
+  VIEWER
+  EDITOR
 }
