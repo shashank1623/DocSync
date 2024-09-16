@@ -5,6 +5,41 @@ import { verifyToken } from "../middleware/authMiddleware";
 
 const dashboardRouter = Router();
 
+// Fetch all the Dcouments owened by or shared with the user
+dashboardRouter.get("/documents",verifyToken, async(req,res)=>{
+    try {
+
+        const ownedDocuments = await prisma.document.findMany({
+            where : {ownerId : req.user.id},
+            include : {
+                collaborators : true,
+            }
+        });
+
+        //fetch documents where the user is collabrator
+        const collaboratingDocuments = await prisma.document.findMany({
+            where : {
+                collaborators :{
+                    some : {
+                        userId : req.user.id,
+                    }
+                }
+            },
+            include: {
+                collaborators: true, // To include collaborator data in the response
+            },
+        })
+
+        //combine both results
+        const allDocuments = [...ownedDocuments,...collaboratingDocuments];
+
+        res.status(200).json(allDocuments);
+    }catch (error){
+        console.error("Error fetching documents:", error);
+        res.status(500).json({ error: "Unable to fetch documents." });
+    }
+})
+
 //create a new document
 dashboardRouter.post('/documents',verifyToken , async(req,res)=>{
     const {title , content} = req.body;
@@ -49,9 +84,7 @@ dashboardRouter.get("/documents/:id",verifyToken,async(req,res)=>{
             })
         }
 
-        res.status(403).json({
-            error : "Unauthorized Access"
-        });
+        res.status(200).json(document);
     }catch (error) {
         console.error("Error fetching document:", error);
         res.status(500).json({ error: "Unable to fetch document." });
