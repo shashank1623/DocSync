@@ -1,135 +1,98 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { BACKEND_URL } from '@/config'; // Ensure this points to your backend
+import { Button } from '@/components/ui/button';
+import { Grid, List, FileText } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { SkeltonLoader } from './SkeltonLoader'; // Import the SkeletonLoader component
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-  } from "@/components/ui/dropdown-menu"
-  import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-  } from "@/components/ui/select"
-  import { FileText, MoreVertical, Grid, List } from "lucide-react"
-export const DocList = () =>{
-
-    const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
-
-    const userDocuments = [
-        { id: 1, title: "Project Proposal", lastModified: "2023-06-15T10:30:00Z", thumbnail: "/placeholder.svg?height=200&width=150" },
-        { id: 2, title: "Meeting Notes", lastModified: "2023-06-14T15:45:00Z", thumbnail: "/placeholder.svg?height=200&width=150" },
-        { id: 3, title: "Budget Report", lastModified: "2023-06-13T09:00:00Z", thumbnail: "/placeholder.svg?height=200&width=150" },
-        { id: 4, title: "Marketing Strategy", lastModified: "2023-06-12T14:20:00Z", thumbnail: "/placeholder.svg?height=200&width=150" },
-        { id: 5, title: "Product Roadmap", lastModified: "2023-06-11T11:00:00Z", thumbnail: "/placeholder.svg?height=200&width=150" },
-    ]
-
-    return <>
-        <div className="mt-8 px-4 sm:px-0">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold">Recent documents</h2>
-            <div className="flex items-center space-x-4">
-              <Select defaultValue="anyone">
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Owned by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="anyone">Owned by anyone</SelectItem>
-                  <SelectItem value="me">Owned by me</SelectItem>
-                  <SelectItem value="others">Not owned by me</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="flex border rounded-md">
-                <Button
-                  variant={viewMode === "grid" ? "secondary" : "ghost"}
-                  size="icon"
-                  onClick={() => setViewMode("grid")}
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "list" ? "secondary" : "ghost"}
-                  size="icon"
-                  onClick={() => setViewMode("list")}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-          {viewMode === "grid" ? (
-            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {userDocuments.map((doc) => (
-                <div key={doc.id} className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden relative">
-                  <div className="aspect-w-3 aspect-h-2">
-                    <img src={doc.thumbnail} alt={doc.title} className="object-cover w-full h-full" />
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">{doc.title}</h3>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Open</DropdownMenuItem>
-                          <DropdownMenuItem>Share</DropdownMenuItem>
-                          <DropdownMenuItem>Rename</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                    <div className="mt-2 flex items-center text-xs text-gray-500 dark:text-gray-400">
-                      <FileText className="h-4 w-4 mr-1" />
-                      <span>Opened {doc.lastModified}</span>
-                      {doc.shared && <Users className="h-4 w-4 ml-2" />}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
-              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                {userDocuments.map((doc) => (
-                  <li key={doc.id}>
-                    <div className="px-4 py-4 flex items-center justify-between">
-                      <div className="flex items-center min-w-0">
-                        <FileText className="h-5 w-5 text-blue-500 mr-3 flex-shrink-0" />
-                        <div className="flex items-center min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{doc.title}</p>
-                          {doc.shared && <Users className="h-4 w-4 text-gray-400 ml-2 flex-shrink-0" />}
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mr-4">me</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mr-4">{doc.lastModified}</p>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Open</DropdownMenuItem>
-                            <DropdownMenuItem>Share</DropdownMenuItem>
-                            <DropdownMenuItem>Rename</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-    </>
+interface Document {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  ownerId: string;
 }
+
+export const DocList = () => {
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // Default to grid view
+  const [loading, setLoading] = useState<boolean>(true); // Add loading state
+  const navigate = useNavigate();
+
+  // Fetch documents on component load
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const response = await axios.get(`${BACKEND_URL}/api/v1/dashboard/documents`, {
+          headers: {
+            Authorization: localStorage.getItem('token'),
+          },
+        });
+        setDocuments(response.data);
+      } catch (error) {
+        console.error('Error fetching documents:', error);
+      } finally {
+        setLoading(false); // Set loading to false when done
+      }
+    };
+
+    fetchDocuments();
+  }, []);
+
+  // Function to handle opening a specific document
+  const handleOpenDocument = (docId: string) => {
+    navigate(`/dashboard/document/d/${docId}/edit`);
+  };
+
+  return (
+    <div className="p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Your Documents</h2>
+        <div className="flex items-center space-x-2">
+          <Button variant={viewMode === 'grid' ? 'default' : 'outline'} onClick={() => setViewMode('grid')}>
+            <Grid className="h-4 w-4" />
+          </Button>
+          <Button variant={viewMode === 'list' ? 'default' : 'outline'} onClick={() => setViewMode('list')}>
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-3' : 'grid-cols-1'}`}>
+        {loading
+          ? Array.from({ length: 6 }).map((_, index) => (
+              <SkeltonLoader key={index} />
+            )) // Render skeleton loaders
+          : documents.map((document) => (
+              <div
+                key={document.id}
+                className="p-4 bg-white rounded-lg shadow-md hover:shadow-lg cursor-pointer"
+                onClick={() => handleOpenDocument(document.id)} // Navigate to document editor on click
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold">
+                    {document.title || 'Untitled Document'} {/* Handle untitled documents */}
+                  </h3>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" >
+                      <DropdownMenuItem onClick={() => handleOpenDocument(document.id)}>Open</DropdownMenuItem>
+                      <DropdownMenuItem>Rename</DropdownMenuItem>
+                      <DropdownMenuItem>Delete</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <p className="text-sm text-gray-500">{new Date(document.updatedAt).toLocaleString()}</p>
+              </div>
+            ))}
+      </div>
+    </div>
+  );
+};
