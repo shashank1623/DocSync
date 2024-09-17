@@ -1,12 +1,43 @@
 
 import { Button } from "@/components/ui/button"
+import { BACKEND_URL } from "@/config";
+import axios from "axios";
+import { useNavigate } from "react-router-dom"
 
 export const NewDoc = () =>{
+
+  const navigate = useNavigate();
+  const createNewDocument = async ()=>{
+
+    try{
+      const response = await axios.post(`${BACKEND_URL}/api/v1/dashboard/documents`,
+        {
+          title : "Untitled Document",  // Default title for new documents
+          content : "",   //Blank document Initially
+        },{
+          headers : {
+            "Content-Type" : "application/json",
+            Authorization : localStorage.getItem("token"),
+          }
+        }
+      );
+
+      const newDocument = response.data;
+      //if the response is ok
+      // the navigate the user to `/dashboard/document/d/${data.id}/edit;
+      navigate(`/dashboard/document/d/${newDocument.id}/edit`);
+    }catch(error){
+      console.error("Error creating documetn",error)
+    }
+  }
     return <>
         <div className="px-4 py-6 sm:px-0">
           <h2 className="text-2xl font-semibold mb-4">Start a new document</h2>
           <div className="flex flex-col items-center">
-            <Button className="w-40 h-52 flex flex-col items-center justify-center bg-white hover:bg-gray-50 border border-gray-300 rounded-lg shadow-sm transition-all duration-200 ease-in-out">
+            <Button 
+              className="w-40 h-52 flex flex-col items-center justify-center bg-white hover:bg-gray-50 border border-gray-300 rounded-lg shadow-sm transition-all duration-200 ease-in-out"
+              onClick={createNewDocument}
+            >
               <div className="w-14 h-14 mb-2 relative">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-10 h-2 bg-blue-500" />
