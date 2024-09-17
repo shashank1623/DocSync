@@ -47,6 +47,23 @@ export const DocList = () => {
     navigate(`/dashboard/document/d/${docId}/edit`);
   };
 
+  const handleDocumentDelete = async (e: React.MouseEvent ,docId : string) =>{
+    e.stopPropagation(); // Prevent event propagation to the parent div
+    if (window.confirm('Are you sure you want to delete this document?')) { // Confirm deletion
+      try {
+        await axios.delete(`${BACKEND_URL}/api/v1/dashboard/documents/${docId}`, {
+          headers: {
+            Authorization: localStorage.getItem('token'),
+          },
+        });
+        // After successful deletion, remove the document from the local state
+        setDocuments((prevDocuments) => prevDocuments.filter((doc) => doc.id !== docId));
+      } catch (error) {
+        console.error('Error deleting document:', error);
+      }
+    }
+  }
+
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
@@ -85,7 +102,7 @@ export const DocList = () => {
                     <DropdownMenuContent align="end" >
                       <DropdownMenuItem onClick={() => handleOpenDocument(document.id)}>Open</DropdownMenuItem>
                       <DropdownMenuItem>Rename</DropdownMenuItem>
-                      <DropdownMenuItem>Delete</DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e)=> handleDocumentDelete(e,document.id)}>Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
