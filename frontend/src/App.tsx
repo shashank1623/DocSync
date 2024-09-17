@@ -19,7 +19,7 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path='/dashboard' element={<Dashboard />} />
-          <Route path='/dashboard/document/d/:id/edit' element={<DocSyncEditor/>}/>
+          <Route path='/dashboard/document/d/:id/:accessType' element={<DocSyncEditor />} />
         </Route>
       </Routes>
     </BrowserRouter>
