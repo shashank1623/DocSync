@@ -25,16 +25,20 @@ export default function Auth({ type }: AuthProps) {
         loading,
         error,
         handleSubmit,
-      } = useAuth(isSignIn);
+    } = useAuth(isSignIn);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
-                    <div className="flex items-center justify-center mb-4">
-                        <FileText className="h-8 w-8 text-blue-500" />
-                        <span className="ml-2 text-2xl font-bold">DocSync</span>
-                    </div>
+                    <Link to="/">
+                        <div className="flex items-center justify-center mb-4">
+                            <FileText className="h-8 w-8 text-blue-500" />
+                            <span className="ml-2 text-2xl font-bold">DocSync</span>
+                        </div>
+
+                    </Link>
+
                     <CardTitle className="text-2xl font-bold text-center">
                         {isSignIn ? "Sign in to your account" : "Create an account"}
                     </CardTitle>
@@ -49,7 +53,7 @@ export default function Auth({ type }: AuthProps) {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="first-name">First name</Label>
-                                    <Input id="first-name" placeholder="John" value={firstName} onChange={(e)=> setFirstName(e.target.value)} required />
+                                    <Input id="first-name" placeholder="John" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="last-name">Last name</Label>
