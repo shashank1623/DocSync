@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,40 +11,40 @@ datasource db {
 }
 
 model User {
-  id        String      @id @default(uuid())
-  name      String   // You can concatenate firstName and lastName into one name field.
-  email     String   @unique
-  password  String?   // This will store the hashed password.
-  image     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  socialId  String? // For social login (Google, Facebook)
-  documents   Document[] // One-to-many relationship with Document
+  id           String        @id @default(uuid())
+  name         String        // You can concatenate firstName and lastName into one name field.
+  email        String        @unique
+  password     String?       // This will store the hashed password.
+  image        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  socialId     String?       // For social login (Google, Facebook)
+  documents    Document[]    // One-to-many relationship with Document
   collaborators Collaborator[] // Many-to-many via Collaborator model
 
   @@map("users")
 }
 
-model Document{
-  id          String       @id @default(uuid())
-  title       String       @default("Untitled Document")
-  content     String       @default("")
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  ownerId     String
-  owner       User         @relation(fields: [ownerId], references: [id])
+model Document {
+  id            String         @id @default(uuid())
+  title         String         @default("Untitled Document")
+  content       String         @default("")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  ownerId       String
+  owner         User           @relation(fields: [ownerId], references: [id])
   collaborators Collaborator[] // Many-to-many via Collaborator model
 
   @@map("documents")
 }
 
 model Collaborator {
-  id          Int          @id @default(autoincrement())
-  userId      String
-  documentId  String
-  role        CollaboratorRole @default(EDITOR)
-  user        User        @relation(fields: [userId], references: [id])
-  document    Document    @relation(fields: [documentId], references: [id])
+  id            Int            @id @default(autoincrement())
+  userId        String
+  documentId    String
+  role          CollaboratorRole @default(EDITOR)
+  user          User            @relation(fields: [userId], references: [id])
+  document      Document        @relation(fields: [documentId], references: [id])
 
   @@unique([userId, documentId]) // Ensure a user cannot have multiple roles on the same document
   @@map("collaborators")
