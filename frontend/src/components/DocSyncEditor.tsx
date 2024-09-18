@@ -23,9 +23,9 @@ interface DocSyncEditorProps {
   onBack?: () => void;
 }
 
-export default function DocSyncEditor({ onSave }: DocSyncEditorProps) {
+export default function DocSyncEditor({ }: DocSyncEditorProps) {
   const { id: paramDocId, accessType: paramAccessType } = useParams<{ id: string; accessType: string }>();
-  const [docId, setDocId] = useState(paramDocId || ''); 
+  const [docId] = useState(paramDocId || ''); 
   const [title, setTitle] = useState('Untitled Document');
   const [isSaving, setIsSaving] = useState(false);
   const [activeUsers, setActiveUsers] = useState(1);
