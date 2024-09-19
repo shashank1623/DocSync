@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { BACKEND_URL } from '@/config';
+import { BACKEND_URL , FRONTED_URL } from '@/config';
 
 interface DocSyncEditorProps {
   onSave?: (docId: string, title: string, content: string) => void;
@@ -163,7 +163,7 @@ export default function DocSyncEditor({ }: DocSyncEditorProps) {
   };
 
   const handleCopyLink = () => {
-    const url = `http://localhost:5173/dashboard/document/d/${docId}/shared?access=${accessType}`;
+    const url = `${FRONTED_URL}/dashboard/document/d/${docId}/shared?access=${accessType}`;
     navigator.clipboard.writeText(url).then(() => {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
@@ -220,7 +220,7 @@ export default function DocSyncEditor({ }: DocSyncEditorProps) {
                 </RadioGroup>
                 <div className="flex items-center space-x-2">
                   <Input
-                    value={`http://localhost:5173/dashboard/document/d/${docId}/shared?access=${accessType}`}
+                    value={`${FRONTED_URL}/dashboard/document/d/${docId}/shared?access=${accessType}`}
                     readOnly
                   />
                   <Button onClick={handleCopyLink}>
