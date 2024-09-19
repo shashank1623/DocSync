@@ -1,2 +1,2 @@
-export const BACKEND_URL = "http://localhost:3000";
+export const BACKEND_URL = "https://docsync-njzk.onrender.com/";
 export const FRONTED_URL = "https://docsync.shashankbhardwaj.me"
