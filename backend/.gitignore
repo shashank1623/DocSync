@@ -1,6 +1,4 @@
 # prod
-dist/
-
 # dev
 .yarn/
 !.yarn/releases
