@@ -2,10 +2,17 @@ import express from 'express';
 import cors from 'cors';
 import http from 'http'; // Import http to use the same server for WebSocket
 import { WebSocketServer } from 'ws'; // Import WebSocketServer from 'ws'
-import { verifyToken } from './middleware/authMiddleware'; // Ensure token verification is used in WebSocket
+import { verifyToken } from './middleware/authMiddleware'; // Use the token verification method
 import dashboardRouter from './routes/dashboard';
 import userRouter from './routes/user';
 import prisma from './routes/client';
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+
+interface JwtPayload {
+  id: string;
+}
 
 const app = express();
 app.use(cors());
@@ -15,106 +22,135 @@ app.get('/', (req, res) => {
   res.send("Bhai mai user Root hu!");
 });
 app.use('/api/v1/user', userRouter);
-app.use('/api/v1/dashboard', dashboardRouter);
+app.use('/api/v1/dashboard', dashboardRouter); // Route for dashboard, including document sharing
 
 // Create an HTTP server to integrate WebSocket
 const server = http.createServer(app);
 
-// Create WebSocket Server
-const wss = new WebSocketServer({ server }); // Bind WebSocket to the HTTP server
+// // Create WebSocket Server
+// const wss = new WebSocketServer({ server }); // Bind WebSocket to the HTTP server
 
-// Map to store document-specific clients
-const documentClients = new Map<string, WebSocket[]>();
+// // Map to store document-specific clients
+// const documentClients = new Map<string, WebSocket[]>();
 
-wss.on('connection', (ws, req) => {
-  const urlParts = req.url?.split('/');
-  const documentId = urlParts ? urlParts[urlParts.length - 1] : null;
+// wss.on('connection', async (ws, req) => {
+//   ws.on('error',console.error);
 
-  if (!documentId) {
-    ws.close(); // Close connection if no document ID is provided
-    return;
-  }
+//   // Check the URL for document ID and access type
+//   const urlParts = req.url?.split('/') || [];
+//   const documentId = urlParts[5]; // Index 5 contains the document ID
 
-  // Extract the accessType from the query parameter (e.g., '?access=editor')
-  const accessType = new URLSearchParams(req.url?.split('?')[1]).get('access');
+//   if (!documentId) {
+//     console.log("Document ID was not found.");
+//     ws.close(); // Close connection if no document ID is provided
+//     return;
+//   }
 
-  // Validate if the access type is correct (only 'viewer' or 'editor' are allowed)
-  if (accessType !== 'viewer' && accessType !== 'editor') {
-    ws.close(); // Close connection for invalid access type
-    return;
-  }
+//   // Extract the query parameters
+//   const query = req.url?.split('?')[1];
+//   const queryParams = new URLSearchParams(query);
+//   const token = queryParams.get('token');
+//   const accessType = queryParams.get('access');
 
-  // Continue with existing logic to add the client to documentClients
-  if (!documentClients.has(documentId)) {
-    documentClients.set(documentId, []);
-  }
 
-  const clients = documentClients.get(documentId);
-  if (clients) {
-    clients.push(ws);
-  }
+//   if (!token) {
+//     console.log("Token was not provided.");
+//     ws.close(); // Close connection if no token is provided
+//     return;
+//   }
 
-  // Send the initial count of active users
-  broadcastActiveUsers(documentId);
+//   try {
+//     const user = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
-  // Handle incoming WebSocket messages (for edits and cursors)
-  ws.on('message', async (data) => {
-    const message = JSON.parse(data.toString());
+//     if (!user) {
+//       ws.close(); // Close connection if token is invalid
+//       return;
+//     }
 
-    if (message.type === 'edit') {
-      // Only allow editors to send edit messages
-      if (accessType === 'editor') {
-        clients?.forEach(client => {
-          if (client !== ws) {
-            client.send(JSON.stringify(message));
-          }
-        });
-      }
-    } else if (message.type === 'cursor') {
-      // Broadcast cursor position to all other clients
-      clients?.forEach(client => {
-        if (client !== ws) {
-          client.send(JSON.stringify(message));
-        }
-      });
-    }
-  });
+//     // Validate access type
+//     if (accessType !== 'viewer' && accessType !== 'editor') {
+//       ws.close(); // Close connection for invalid access type
+//       return;
+//     }
 
-  ws.on('close', () => {
-    // Remove the client from the document-specific clients
-    const updatedClients = clients?.filter(client => client !== ws);
-    documentClients.set(documentId, updatedClients || []);
+//     // Check if user has the right access (editor or viewer)
+//     const hasEditorAccess = await checkEditorRole(user.id, documentId);
+//     if (accessType === 'editor' && !hasEditorAccess) {
+//       ws.close(); // Close connection if user is not an editor but trying to edit
+//       return;
+//     }
 
-    // Broadcast updated active users count
-    broadcastActiveUsers(documentId);
-  });
-});
+//     // Proceed to add the client to the document's clients list
+//     if (!documentClients.has(documentId)) {
+//       documentClients.set(documentId, []);
+//     }
 
-// Broadcast active users to all clients of a document
-const broadcastActiveUsers = (documentId: string) => {
-  const clients = documentClients.get(documentId) || [];
-  clients.forEach(client => {
-    client.send(JSON.stringify({
-      type: 'activeUsers',
-      count: clients.length,
-    }));
-  });
-};
+//     const clients = documentClients.get(documentId);
+//     clients?.push(ws);
 
-// Check if the user is an editor of the document
-const checkEditorRole = async (userId: string, documentId: string) => {
-  const collaborator = await prisma.collaborator.findFirst({
-    where: {
-      userId,
-      documentId,
-      role: 'EDITOR',
-    },
-  });
-  return !!collaborator; // Returns true if the user is an editor, otherwise false
-};
+//     // Send the initial count of active users
+//     broadcastActiveUsers(documentId);
+
+//     // Handle incoming WebSocket messages
+//     ws.on('message', async (data) => {
+//       const message = JSON.parse(data.toString());
+
+//       if (message.type === 'edit' && accessType === 'editor') {
+//         // Only allow editors to send edit messages
+//         clients?.forEach(client => {
+//           if (client !== ws) {
+//             client.send(JSON.stringify(message));
+//           }
+//         });
+//       } else if (message.type === 'cursor') {
+//         // Broadcast cursor position to all other clients
+//         clients?.forEach(client => {
+//           if (client !== ws) {
+//             client.send(JSON.stringify(message));
+//           }
+//         });
+//       }
+//     });
+
+//     // Remove the client when they disconnect
+//     ws.on('close', () => {
+//       const updatedClients = clients?.filter(client => client !== ws);
+//       documentClients.set(documentId, updatedClients || []);
+//       broadcastActiveUsers(documentId);
+//     });
+
+//   } catch (error) {
+//     console.log("Error during token verification:", error);
+//     ws.close(); // Close connection if token verification fails
+//   }
+// });
+
+
+// // Broadcast active users to all clients of a document
+// const broadcastActiveUsers = (documentId: string) => {
+//   const clients = documentClients.get(documentId) || [];
+//   clients.forEach(client => {
+//     client.send(JSON.stringify({
+//       type: 'activeUsers',
+//       count: clients.length,
+//     }));
+//   });
+// };
+
+// // Check if the user is an editor of the document
+// const checkEditorRole = async (userId: string, documentId: string) => {
+//   const collaborator = await prisma.collaborator.findFirst({
+//     where: {
+//       userId,
+//       documentId,
+//       role: 'EDITOR',
+//     },
+//   });
+//   return !!collaborator; // Returns true if the user is an editor, otherwise false
+// };
 
 // Start the HTTP server and WebSocket server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
