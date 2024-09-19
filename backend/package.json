@@ -3,10 +3,17 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "tsc -b",
     "start": "node dist/index.js",
+    "build": "rimraf dist && tsc",
+    "ts.check": "tsc --project tsconfig.json",
+    "add-build": "git add dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "pre-commit": [
+      "ts.check",
+      "build",
+      "add-build"
+  ],
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -33,6 +40,8 @@
     "@eslint/js": "^9.10.0",
     "eslint": "^9.10.0",
     "globals": "^15.9.0",
+    "pre-commit": "^1.2.2",
+    "rimraf": "^6.0.1",
     "typescript-eslint": "^8.4.0"
   }
 }
