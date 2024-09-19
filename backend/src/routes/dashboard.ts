@@ -96,7 +96,7 @@ dashboardRouter.get("/documents/:id", verifyToken, async (req, res) => {
   }
 });
 
-// Get a specific document by ID with access control (viewer/editor)
+// Get a shared document with viewer or editor access
 dashboardRouter.get("/documents/:id/shared", verifyToken, async (req, res) => {
   const { id } = req.params;
   const accessType = req.query.access as string; // 'viewer' or 'editor'
@@ -110,8 +110,29 @@ dashboardRouter.get("/documents/:id/shared", verifyToken, async (req, res) => {
       return res.status(404).json({ error: "Document not found" });
     }
 
-    // Check viewer access: viewers can only read the document
-    if (accessType === 'viewer') {
+    // If the user is the owner, allow full access
+    if (document.ownerId === req.user.id) {
+      return res.status(200).json({
+        title: document.title,
+        content: document.content,
+        readOnly: accessType === 'viewer',
+      });
+    }
+
+    // Check for collaborator access
+    const collaborator = await prisma.collaborator.findFirst({
+      where: {
+        userId: req.user.id,
+        documentId: id,
+      },
+    });
+
+    if (!collaborator) {
+      return res.status(403).json({ error: "Unauthorized access" });
+    }
+
+    // Handle viewer access
+    if (accessType === 'viewer' && collaborator.role === 'VIEWER') {
       return res.status(200).json({
         title: document.title,
         content: document.content,
@@ -119,21 +140,8 @@ dashboardRouter.get("/documents/:id/shared", verifyToken, async (req, res) => {
       });
     }
 
-    // Check editor access: only collaborators with EDITOR role can modify
-    if (accessType === 'editor') {
-      // Ensure the user is a collaborator with EDITOR role
-      const collaborator = await prisma.collaborator.findFirst({
-        where: {
-          userId: req.user.id,
-          documentId: id,
-          role: 'EDITOR',
-        },
-      });
-
-      if (!collaborator && document.ownerId !== req.user.id) {
-        return res.status(403).json({ error: "Unauthorized access: Not an editor" });
-      }
-
+    // Handle editor access
+    if (accessType === 'editor' && collaborator.role === 'EDITOR') {
       return res.status(200).json({
         title: document.title,
         content: document.content,
@@ -141,10 +149,11 @@ dashboardRouter.get("/documents/:id/shared", verifyToken, async (req, res) => {
       });
     }
 
-    // Handle invalid access type
-    return res.status(400).json({ error: "Invalid access type." });
+    // If the access type or role is invalid
+    return res.status(403).json({ error: "Unauthorized or invalid access type." });
+
   } catch (error) {
-    console.error("Error fetching document:", error);
+    console.error("Error fetching shared document:", error);
     res.status(500).json({ error: "Unable to fetch document." });
   }
 });
