@@ -1,19 +1,19 @@
 import { Navigate, Outlet } from 'react-router-dom';
-
 import { useUserStore } from '@/stores/useUserStore';
 
 const ProtectedRoute = () => {
   const { user } = useUserStore();
   const token = localStorage.getItem('token');
 
-  // If there is no user in Zustand or token, redirect to sign-in
-  if (!user || !token) {
+  // If no user in Zustand and no token in localStorage, redirect to sign-in
+  if (!user && !token) {
     return <Navigate to="/signin" />;
   }
 
-  // Otherwise, allow access to the protected routes
+  // If the user is logged in, allow access to the protected routes
   return <Outlet />;
 };
 
 export default ProtectedRoute;
+
 
