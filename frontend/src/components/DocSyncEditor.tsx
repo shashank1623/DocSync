@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { BACKEND_URL } from '@/config'; // Ensure this points to your backend
+import { BACKEND_URL } from '@/config';
 
 interface DocSyncEditorProps {
   onSave?: (docId: string, title: string, content: string) => void;
@@ -25,7 +25,7 @@ interface DocSyncEditorProps {
 
 export default function DocSyncEditor({ }: DocSyncEditorProps) {
   const { id: paramDocId, accessType: paramAccessType } = useParams<{ id: string; accessType: string }>();
-  const [docId] = useState(paramDocId || ''); 
+  const [docId] = useState(paramDocId || '');
   const [title, setTitle] = useState('Untitled Document');
   const [isSaving, setIsSaving] = useState(false);
   const [activeUsers, setActiveUsers] = useState(1);
@@ -33,7 +33,7 @@ export default function DocSyncEditor({ }: DocSyncEditorProps) {
   const quillRef = useRef<Quill | null>(null);
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
-  const [accessType, setAccessType] = useState(paramAccessType || "viewer");
+  const [accessType, setAccessType] = useState(paramAccessType || "none"); // Default to "none" unless sharing
   const [isCopied, setIsCopied] = useState(false);
   const navigate = useNavigate();
 
@@ -66,7 +66,7 @@ export default function DocSyncEditor({ }: DocSyncEditorProps) {
     fetchDocument();
   }, [docId]);
 
-  // Initialize Quill editor and web socket connection
+  // Initialize Quill editor
   useEffect(() => {
     if (editorRef.current && !quillRef.current) {
       const quill = new Quill(editorRef.current, {
@@ -83,13 +83,15 @@ export default function DocSyncEditor({ }: DocSyncEditorProps) {
           ],
         },
       });
-
       quillRef.current = quill;
+    }
+  }, []);
 
+  // Initiate WebSocket only when sharing the document or opening a shared document
+  useEffect(() => {
+    if (accessType === 'viewer' || accessType === 'editor') {
       const token = localStorage.getItem('token');
-
-      // Correct WebSocket URL with token and accessType
-      const wsUrl = `ws://localhost:3001/docs/${docId}?access=${accessType}`;
+      const wsUrl = `ws://localhost:3000/api/v1/dashboard/documents/${docId}/shared?token=${token}&access=${accessType}`;
       const socket = new WebSocket(wsUrl);
 
       socket.onopen = () => {
@@ -97,11 +99,20 @@ export default function DocSyncEditor({ }: DocSyncEditorProps) {
           type: "auth",
           token,  // Send the token after the connection opens
         }));
+
+        // Send the current document content to the new user
+        if (quillRef.current) {
+          socket.send(JSON.stringify({
+            type: "edit",
+            content: quillRef.current.root.innerHTML,
+          }));
+        }
       };
 
       socket.onmessage = (event) => {
         const message = JSON.parse(event.data);
         if (message.type === 'edit') {
+          // Update the content in the editor for User B
           if (quillRef.current) {
             quillRef.current.root.innerHTML = message.content;
           }
@@ -117,8 +128,8 @@ export default function DocSyncEditor({ }: DocSyncEditorProps) {
       }, 5000);
 
       return () => {
-        clearInterval(autoSaveInterval); 
-        socket.close(); 
+        clearInterval(autoSaveInterval);
+        socket.close();
       };
     }
   }, [docId, accessType]);
@@ -152,7 +163,7 @@ export default function DocSyncEditor({ }: DocSyncEditorProps) {
   };
 
   const handleCopyLink = () => {
-    const url = `${BACKEND_URL}/api/v1/dashboard/documents/${docId}?access=${accessType}`;
+    const url = `http://localhost:5173/dashboard/document/d/${docId}/shared?access=${accessType}`;
     navigator.clipboard.writeText(url).then(() => {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
@@ -209,7 +220,7 @@ export default function DocSyncEditor({ }: DocSyncEditorProps) {
                 </RadioGroup>
                 <div className="flex items-center space-x-2">
                   <Input
-                    value={`${BACKEND_URL}/api/v1/dashboard/documents/${docId}?access=${accessType}`}
+                    value={`http://localhost:5173/dashboard/document/d/${docId}/shared?access=${accessType}`}
                     readOnly
                   />
                   <Button onClick={handleCopyLink}>
