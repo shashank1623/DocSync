@@ -8,19 +8,18 @@ import { useUserStore } from "@/stores/useUserStore";
 
 export const useAuth = (isSignIn: boolean) => {
   const navigate = useNavigate();
-  const {setUser} = useUserStore();
+  const { setUser } = useUserStore();
 
-  // Form data state
+  // Form data state (kept unchanged)
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Loading and error states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Sign up logic
+  // Sign up logic (unchanged, except setting user)
   const handleSignup = async () => {
     setLoading(true);
     setError(null);
@@ -46,10 +45,10 @@ export const useAuth = (isSignIn: boolean) => {
 
     try {
       const response = await axios.post(`${BACKEND_URL}/api/v1/user/signup`, validation.data);
-      const {token , email , name} = response.data;
-      localStorage.setItem("token", token); // Store token in local storage
-      setUser({email,name}); // Update Zustand store with user info
-      //alert("Account created successfully!");
+      const { token, email, name } = response.data;
+
+      localStorage.setItem("token", token); // Store token in localStorage
+      setUser({ email, name }); // Update Zustand store and persist user
       navigate("/dashboard");
     } catch (err: any) {
       setError(err.response?.data?.error || "Something went wrong.");
@@ -58,7 +57,7 @@ export const useAuth = (isSignIn: boolean) => {
     }
   };
 
-  // Sign in logic
+  // Sign in logic (unchanged, except setting user)
   const handleSignin = async () => {
     setLoading(true);
     setError(null);
@@ -82,11 +81,10 @@ export const useAuth = (isSignIn: boolean) => {
 
     try {
       const response = await axios.post(`${BACKEND_URL}/api/v1/user/signin`, validation.data);
-      const { token, email , name } = response.data;
-      localStorage.setItem("token", token); // Store token in local storage
-      setUser({email,name}); // Update Zustand store with user info
-      setUser({email,name});
-      //alert("Login successful!");
+      const { token, email, name } = response.data;
+
+      localStorage.setItem("token", token); // Store token in localStorage
+      setUser({ email, name }); // Update Zustand store and persist user
       navigate("/dashboard");
     } catch (err: any) {
       setError(err.response?.data?.error || "Invalid email or password.");
